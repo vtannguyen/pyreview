@@ -112,4 +112,3 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
         },
         {"src/tests/test_items.py": [3, *range(13, 26)]},
     )
-    assert False

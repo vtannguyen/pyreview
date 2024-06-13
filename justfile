@@ -10,7 +10,7 @@ venv:
 
 # Run tests
 test: venv
-    .venv/bin/pytest --cov
+    .venv/bin/pytest --cov --cov-report html:cov_html
 
 # Install requirements
 install: venv
