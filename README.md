@@ -15,8 +15,7 @@ The tool should be run in python virtual environment. To set up the python virtu
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install poetry
-poetry install
+pip install -r requirements.txt
 ```
 
 You also need to create an `.env` file with the following environment variables:
