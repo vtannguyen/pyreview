@@ -1,0 +1,17 @@
+.DS_Store
+.idea
+*.log
+tmp/
+
+#python
+*.env
+*.py[cod]
+*.egg
+build
+htmlcov
+.venv/
+.mypy_cache/
+.pytest_cache/
+
+#vim
+*.swp

@@ -22,6 +22,9 @@ requirements: venv
     .venv/bin/pip-compile --generate-hashes requirements.in
     .venv/bin/pip-compile --generate-hashes dev-requirements.in
 
+# Setup dev environment
+setup-dev: venv install
+
 # Tidy up local environment
 clean:
     find . -name \*.pyc -delete
