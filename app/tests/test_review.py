@@ -80,11 +80,13 @@ def mock_code_directory(tmp_path):
     subprocess.run('git commit -m "make some changes"', shell=True, check=True)
     yield {
         "code_files": {
-            "src/items.py": list(range(1, 29)),
+            "src/items.py": list(range(1, len(UPDATED_CODE_CONTENT.splitlines()))),
             "src/schema.py": list(range(1, 6)),
         },
         "test_files": {
-            "src/tests/test_items.py": list(range(1, 35)),
+            "src/tests/test_items.py": list(
+                range(1, len(UPDATED_TEST_CONTENT.splitlines()))
+            ),
         },
     }
     os.chdir(current_dir)
@@ -110,10 +112,10 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
     # Assert
     assert result == (
         {
-            "src/items.py": [*range(6, 9), *range(13, 23), 24],
+            "src/items.py": [2, *range(7, 12), *range(16, 26), 27, 32],
             "src/schema.py": list(range(1, 7)),
         },
-        {"src/tests/test_items.py": [3, *range(13, 26)]},
+        {"src/tests/test_items.py": [2, 4, 11, *range(14, 29), 39]},
     )
 
 
@@ -124,7 +126,7 @@ def test_check_commented_code(mock_code_directory, mocker, caplog):
     expected_log = """CHECK FOR COMMENTED CODE...
 ------------  -----------
 File          Line number
-src/items.py  [6, 7]
+src/items.py  [7, 8]
 ------------  -----------"""
     code_files, _ = get_files_to_check()
     # Act
@@ -139,7 +141,7 @@ def test_check_print_debug(mock_code_directory, mocker, caplog):
     expected_log = """CHECK FOR PRINT DEBUG...
 ------------  -----------
 File          Line number
-src/items.py  [24]
+src/items.py  [27]
 ------------  -----------"""
     code_files, _ = get_files_to_check()
     # Act
@@ -157,17 +159,17 @@ def test_check_code_with_pylint(mock_code_directory, mocker, caplog):
             reporter.writeln(
                 """************* Module src.tests.test_items
 src/tests/test_items.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-src/tests/test_items.py:6:0: C0116: Missing function or method docstring (missing-function-docstring)
-src/tests/test_items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)
-src/tests/test_items.py:28:0: C0116: Missing function or method docstring (missing-function-docstring)"""
+src/tests/test_items.py:7:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/tests/test_items.py:18:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/tests/test_items.py:31:0: C0116: Missing function or method docstring (missing-function-docstring)"""
             )
         else:
             reporter.writeln(
                 """************* Module src.items
 src/items.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-src/items.py:4:0: C0116: Missing function or method docstring (missing-function-docstring)
-src/items.py:13:0: C0116: Missing function or method docstring (missing-function-docstring)
-src/items.py:23:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/items.py:5:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/items.py:26:0: C0116: Missing function or method docstring (missing-function-docstring)
 ************* Module src.schema
 src/schema.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)"""
@@ -175,16 +177,17 @@ src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)"""
 
     expected_log = """CHECKING CODE USING Pylint...
 ************* Module src.items
-src/items.py:13:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)
 ************* Module src.schema
 src/schema.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)
 ************* Module src.tests.test_items
-src/tests/test_items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)"""
+src/tests/test_items.py:18:0: C0116: Missing function or method docstring (missing-function-docstring)"""
 
     mocker.patch("app.review.lint.Run", side_effect=mock_lint_run)
     code_files, test_files = get_files_to_check()
     # Act
     check_code_with_pylint(code_files=code_files, test_files=test_files)
     # Assert
+    print("\n".join(caplog.messages))
     assert expected_log == "\n".join(caplog.messages)

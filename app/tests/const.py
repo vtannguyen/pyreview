@@ -64,6 +64,7 @@ class Item(BaseModel):
 """
 
 UPDATED_CODE_CONTENT = """import json
+import os
 
 
 def get_items() -> list[dict]:
@@ -71,6 +72,8 @@ def get_items() -> list[dict]:
     # Dummy comment
     # Accepted comment fake
     # Accepted comment
+    if not os.path.exists("items.json"):
+        return []
     with open("items.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -82,7 +85,7 @@ def update_item(name: str, description: str) -> None:
             item["description"] = description
             break
     with open("items.json", "w", encoding="utf-8") as f:
-        json.dump(f, items)
+        json.dump(items, f)
 
 
 def create_item(name: str, description: str) -> None:
@@ -91,10 +94,11 @@ def create_item(name: str, description: str) -> None:
     items = get_items()
     items.append({"name": name, "description": description})
     with open("items.json", "w", encoding="utf-8") as f:
-        json.dump(f, items)
+        json.dump(items, f)
 """
 
 UPDATED_TEST_CONTENT = """import json
+import os
 
 from src.items import create_item, get_items, update_item
 
@@ -103,10 +107,11 @@ def test_get_items():
     # Arrange
     data = [{"name": "test_name", "description": "test_description"}]
     with open("items.json", "w", encoding="utf-8") as f:
-        json.dump(f, data)
+        json.dump(data, f)
     # Act
     # Assert
     assert data == get_items()
+    os.remove("items.json")
 
 
 def test_update_item():
@@ -119,6 +124,7 @@ def test_update_item():
     # Assert
     with open("items.json", "r", encoding="utf-8") as f:
         assert [updated_item] == json.load(f)
+    os.remove("items.json")
 
 
 def test_create_item():
@@ -129,4 +135,5 @@ def test_create_item():
     # Assert
     with open("items.json", "r", encoding="utf-8") as f:
         assert [item] == json.load(f)
+    os.remove("items.json")
 """
