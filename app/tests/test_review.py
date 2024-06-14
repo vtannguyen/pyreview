@@ -91,6 +91,7 @@ def test_get_files_to_check__check_all(mock_code_directory, mocker):
 
 def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
     # Arrange
+    mocker.patch("app.review.settings.TARGET_BRANCH", "master")
     mocker.patch("app.review.settings.CODE_DIR", "src")
     # Act
     result = get_files_to_check()
@@ -107,6 +108,7 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
 def test_check_commented_code(mock_code_directory, mocker, caplog):
     # Arrange
     mocker.patch("app.review.settings.ACCEPTED_COMMENTS", ["# Accepted comment"])
+    mocker.patch("app.review.settings.TARGET_BRANCH", "master")
     mocker.patch("app.review.settings.CODE_DIR", "src")
     expected_log = """CHECK FOR COMMENTED CODE...
 ------------  -----------
@@ -122,6 +124,7 @@ src/items.py  [7, 8]
 
 def test_check_print_debug(mock_code_directory, mocker, caplog):
     # Arrange
+    mocker.patch("app.review.settings.TARGET_BRANCH", "master")
     mocker.patch("app.review.settings.CODE_DIR", "src")
     expected_log = """CHECK FOR PRINT DEBUG...
 ------------  -----------
@@ -137,6 +140,7 @@ src/items.py  [27]
 
 def test_check_code_with_pylint(mock_code_directory, mocker, caplog):
     # Arrange
+    mocker.patch("app.review.settings.TARGET_BRANCH", "master")
     mocker.patch("app.review.settings.CODE_DIR", "src")
 
     def mock_lint_run(pylint_code_opts, reporter: TextReporter, *args, **kwargs):
@@ -179,6 +183,7 @@ src/tests/test_items.py:18:0: C0116: Missing function or method docstring (missi
 
 def test_check_code_coverage(mock_code_directory, mocker, caplog):
     # Arrange
+    mocker.patch("app.review.settings.TARGET_BRANCH", "master")
     mocker.patch("app.review.settings.CODE_DIR", "src")
     code_files, _ = get_files_to_check()
     # Act
