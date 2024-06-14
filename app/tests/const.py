@@ -95,6 +95,10 @@ def create_item(name: str, description: str) -> None:
     items.append({"name": name, "description": description})
     with open("items.json", "w", encoding="utf-8") as f:
         json.dump(items, f)
+
+
+def dummy_add(a: int, b:int) -> int:
+    return a + b
 """
 
 UPDATED_TEST_CONTENT = """import json

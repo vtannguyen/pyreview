@@ -1,11 +1,12 @@
 import os
+import re
 import subprocess
-from unittest.mock import MagicMock
 
 import pytest
 from pylint.reporters.text import TextReporter
 
 from app.review import (
+    check_code_coverage,
     check_code_with_pylint,
     check_commented_code,
     check_print_debug,
@@ -20,22 +21,6 @@ from app.tests.const import (
     UPDATED_CODE_CONTENT,
     UPDATED_TEST_CONTENT,
 )
-
-
-@pytest.fixture
-def mock_terminal_commands(mocker):
-
-    def mock_bash(command, *args, **kwargs):
-        mock_result = MagicMock()
-        if command == "git branch":
-            mock_result.stdout = f"  main\n* {CURRENT_BRANCH}\n  feature/feature-2"
-        elif command.startswith("git diff"):
-            with open("/tmp/diff_code.txt", "w", encoding="utf-8") as f:
-                f.write(GIT_DIFF_RESULT)
-        return mock_result
-
-    mocker.patch("subprocess.run", side_effect=mock_bash)
-    yield
 
 
 @pytest.fixture
@@ -112,7 +97,7 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
     # Assert
     assert result == (
         {
-            "src/items.py": [2, *range(7, 12), *range(16, 26), 27, 32],
+            "src/items.py": [2, *range(7, 12), *range(16, 26), 27, *range(32, 37)],
             "src/schema.py": list(range(1, 7)),
         },
         {"src/tests/test_items.py": [2, 4, 11, *range(14, 29), 39]},
@@ -130,7 +115,7 @@ src/items.py  [7, 8]
 ------------  -----------"""
     code_files, _ = get_files_to_check()
     # Act
-    res = check_commented_code(code_files)
+    check_commented_code(code_files)
     # Assert
     assert expected_log == "\n".join(caplog.messages)
 
@@ -189,5 +174,17 @@ src/tests/test_items.py:18:0: C0116: Missing function or method docstring (missi
     # Act
     check_code_with_pylint(code_files=code_files, test_files=test_files)
     # Assert
-    print("\n".join(caplog.messages))
     assert expected_log == "\n".join(caplog.messages)
+
+
+def test_check_code_coverage(mock_code_directory, mocker, caplog):
+    # Arrange
+    mocker.patch("app.review.settings.CODE_DIR", "src")
+    code_files, _ = get_files_to_check()
+    # Act
+    check_code_coverage(code_files)
+    # Assert
+    assert re.search(r"file:///[0-9a-zA-Z/_-]*items_py.html\s*\{36\}", caplog.text)
+    assert re.search(
+        r"file:///[0-9a-zA-Z/_-]*schema_py.html\s*\{1, 4, 5, 6\}", caplog.text
+    )

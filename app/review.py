@@ -174,9 +174,6 @@ def check_code_with_mypy(files: TargetFiles) -> None:
 
 def check_code_coverage(files: TargetFiles) -> None:
     logger.info("CHECKING CODE COVERAGE...")
-    subprocess.run(
-        "pip install --quiet --requirement requirements-dev.txt", shell=True, check=True
-    )
     COV_JSON_FILE_PATH = "cov.json"
     COV_HTML_DIR = "cov_html"
     try:
