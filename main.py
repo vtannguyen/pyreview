@@ -1,5 +1,4 @@
 import os
-import subprocess
 import sys
 
 from app.config import settings
@@ -16,7 +15,7 @@ from app.review import (
 
 if __name__ == "__main__":
     current_dir = os.getcwd()
-    if settings.TARGET_PROJECT:
+    if settings.TARGET_PROJECT != ".":
         os.chdir(settings.TARGET_PROJECT)
     code_files, test_files = get_files_to_check()
     all_files = {**code_files, **test_files}
@@ -32,4 +31,3 @@ if __name__ == "__main__":
         check_vulnerability()
     finally:
         os.chdir(current_dir)
-        subprocess.run("poetry install", shell=True, check=True)
