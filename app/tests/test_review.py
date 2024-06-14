@@ -146,4 +146,45 @@ src/items.py  [24]
     check_print_debug(code_files)
     # Assert
     assert expected_log == "\n".join(caplog.messages)
+
+
+def test_check_code_with_pylint(mock_code_directory, mocker, caplog):
+    # Arrange
+    mocker.patch("app.review.settings.CODE_DIR", "src")
+
+    def mock_lint_run(pylint_code_opts, reporter: TextReporter, *args, **kwargs):
+        if any("test" in filename for filename in pylint_code_opts):
+            reporter.writeln(
+                """************* Module src.tests.test_items
+src/tests/test_items.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/tests/test_items.py:6:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/tests/test_items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/tests/test_items.py:28:0: C0116: Missing function or method docstring (missing-function-docstring)"""
+            )
+        else:
+            reporter.writeln(
+                """************* Module src.items
+src/items.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/items.py:4:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/items.py:13:0: C0116: Missing function or method docstring (missing-function-docstring)
+src/items.py:23:0: C0116: Missing function or method docstring (missing-function-docstring)
+************* Module src.schema
+src/schema.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)"""
+            )
+
+    expected_log = """CHECKING CODE USING Pylint...
+************* Module src.items
+src/items.py:13:0: C0116: Missing function or method docstring (missing-function-docstring)
+************* Module src.schema
+src/schema.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)
+************* Module src.tests.test_items
+src/tests/test_items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)"""
+
+    mocker.patch("app.review.lint.Run", side_effect=mock_lint_run)
+    code_files, test_files = get_files_to_check()
+    # Act
+    check_code_with_pylint(code_files=code_files, test_files=test_files)
     # Assert
+    assert expected_log == "\n".join(caplog.messages)
