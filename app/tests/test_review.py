@@ -8,6 +8,7 @@ from app.review import (
     get_current_branch,
     get_files_to_check,
     get_files_with_commented_code,
+    get_files_with_debug_code,
 )
 from app.tests.const import (
     CODE_CONTENT,
@@ -78,13 +79,11 @@ def mock_code_directory(tmp_path):
     subprocess.run('git commit -m "make some changes"', shell=True, check=True)
     yield {
         "code_files": {
-            "src/__init__.py": [],
-            "src/items.py": list(range(25)),
-            "src/schema.py": list(range(6)),
+            "src/items.py": list(range(1, 29)),
+            "src/schema.py": list(range(1, 6)),
         },
         "test_files": {
-            "src/tests/__init__.py": [],
-            "src/tests/test_items.py": list(range(35)),
+            "src/tests/test_items.py": list(range(1, 35)),
         },
     }
     os.chdir(current_dir)
@@ -110,8 +109,7 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
     # Assert
     assert result == (
         {
-            "src/config.py": [],
-            "src/items.py": [5, *range(10, 20), 21],
+            "src/items.py": [*range(6, 9), *range(13, 23), 24],
             "src/schema.py": list(range(1, 7)),
         },
         {"src/tests/test_items.py": [3, *range(13, 26)]},
@@ -121,7 +119,19 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
 def test_get_files_with_commented_code(mock_code_directory, mocker):
     # Arrange
     mocker.patch("app.review.settings.ACCEPTED_COMMENTS", ["# Accepted comment"])
+    mocker.patch("app.review.settings.CODE_DIR", "src")
     # Act
-    res = get_files_with_commented_code(mock_code_directory["code_files"])
+    code_files, _ = get_files_to_check()
+    res = get_files_with_commented_code(code_files)
     # Assert
-    assert res == {"src/items.py": [5, 6]}
+    assert res == {"src/items.py": [6, 7]}
+
+
+def test_get_files_with_debug_code(mock_code_directory, mocker):
+    # Arrange
+    mocker.patch("app.review.settings.CODE_DIR", "src")
+    code_files, _ = get_files_to_check()
+    # Act
+    res = get_files_with_debug_code(code_files)
+    # Assert
+    assert res == {"src/items.py": [24]}

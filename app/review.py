@@ -39,10 +39,12 @@ def get_all_python_files() -> tuple[TargetCodeFiles, TargetTestFiles]:
                     with open(file_path, "r", encoding="utf-8") as f:
                         line_no = len(f.readlines())
                     if "test" in file_path:
-                        test_files[file_path] = list(range(line_no))
+                        test_files[file_path] = list(range(1, line_no))
                     else:
-                        code_files[file_path] = list(range(line_no))
-    return code_files, test_files
+                        code_files[file_path] = list(range(1, line_no))
+    return {k: v for k, v in code_files.items() if v}, {
+        k: v for k, v in test_files.items() if v
+    }
 
 
 def get_changed_python_files() -> tuple[TargetCodeFiles, TargetTestFiles]:
@@ -75,16 +77,19 @@ def get_changed_python_files() -> tuple[TargetCodeFiles, TargetTestFiles]:
                     test_files.setdefault(current_file, []).extend(new_lines)
                 else:
                     code_files.setdefault(current_file, []).extend(new_lines)
-    return code_files, test_files
+    return {k: v for k, v in code_files.items() if v}, {
+        k: v for k, v in test_files.items() if v
+    }
 
 
 def get_files_with_debug_code(files: TargetFiles) -> TargetFiles:
     files_with_debug_code: TargetFiles = {}
     for file_path in files:
         with open(file_path, "r", encoding="utf-8") as f:
-            for num, line in enumerate(f.readlines()):
-                if re.match(r"\s*print(.*)", line):
-                    files_with_debug_code.setdefault(file_path, []).append(num)
+            for i, line in enumerate(f.readlines()):
+                line_no = i + 1
+                if re.search(r"\s*print(.*)", line) and line_no in files[file_path]:
+                    files_with_debug_code.setdefault(file_path, []).append(line_no)
     return files_with_debug_code
 
 
@@ -92,12 +97,17 @@ def get_files_with_commented_code(files: TargetFiles) -> TargetFiles:
     files_with_commented_code: TargetFiles = {}
     for file_path in files:
         with open(file_path, "r", encoding="utf-8") as f:
-            for num, line in enumerate(f.readlines()):
-                if re.search(r".*#.*", line) and not any(
-                    re.search(f"{comment}$", line)
-                    for comment in settings.ACCEPTED_COMMENTS
+            for i, line in enumerate(f.readlines()):
+                line_no = i + 1
+                if (
+                    re.search(r".*#.*", line)
+                    and not any(
+                        re.search(f"{comment}$", line)
+                        for comment in settings.ACCEPTED_COMMENTS
+                    )
+                    and line_no in files[file_path]
                 ):
-                    files_with_commented_code.setdefault(file_path, []).append(num)
+                    files_with_commented_code.setdefault(file_path, []).append(line_no)
     return files_with_commented_code
 
 

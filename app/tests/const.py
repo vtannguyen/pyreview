@@ -4,11 +4,13 @@ CODE_CONTENT = """import json
 
 
 def get_items() -> list[dict]:
+    print("GETTING ITEMS...")
     with open("items.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def create_item(name: str, description: str) -> None:
+    # Dummy comment
     items = get_items()
     items.append({"name": name, "description": description})
     with open("items.json", "w", encoding="utf-8") as f:
@@ -85,6 +87,7 @@ def update_item(name: str, description: str) -> None:
 
 def create_item(name: str, description: str) -> None:
     print("CREATING ITEM...")
+    # Dummy comment
     items = get_items()
     items.append({"name": name, "description": description})
     with open("items.json", "w", encoding="utf-8") as f:
