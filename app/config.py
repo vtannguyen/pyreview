@@ -11,6 +11,28 @@ class Settings(BaseSettings):
     TEST_TEARDOWN_COMMAND: str | None = None
     COV_JSON_FILE_PATH: str = "cov.json"
     COV_HTML_DIR: str = "cov_html"
+    PYLINT_DISABLE_OPTIONS_CODE_FILES: list[str] = [
+        "line-too-long",
+        "missing-function-docstring",
+        "missing-module-docstring",
+        "invalid-name",
+        "missing-class-docstring",
+        "import-error",
+        "too-few-public-methods",
+    ]
+    PYLINT_DISABLE_OPTIONS_TEST_FILES: list[str] = [
+        "line-too-long",
+        "missing-function-docstring",
+        "missing-module-docstring",
+        "invalid-name",
+        "missing-class-docstring",
+        "import-error",
+        "redefined-outer-name",
+        "too-many-arguments",
+        "unused-argument",
+        "protected-access",
+        "duplicate-code",
+    ]
 
     model_config = SettingsConfigDict(env_file=".env")
 

@@ -121,18 +121,17 @@ def get_files_to_check() -> tuple[TargetCodeFiles, TargetTestFiles]:
 def check_code_with_pylint(code_files: TargetFiles, test_files: TargetFiles) -> None:
     logger.info("CHECKING CODE USING Pylint...")
     all_files = {**code_files, **test_files}
-    DISABLED_DEFAULT = "--disable=line-too-long,missing-function-docstring,missing-module-docstring,invalid-name,missing-class-docstring,import-error"
     lint_output = StringIO()
     reporter = TextReporter(lint_output)
     if code_files:
         pylint_code_opts = [
-            f"{DISABLED_DEFAULT},too-few-public-methods",
+            f"--disable={','.join(settings.PYLINT_DISABLE_OPTIONS_CODE_FILES)}",
             *code_files.keys(),
         ]
         lint.Run(pylint_code_opts, reporter=reporter, exit=False)
     if test_files:
         pylint_test_opts = [
-            f"{DISABLED_DEFAULT},redefined-outer-name,too-many-arguments,unused-argument,protected-access,duplicate-code",
+            f"--disable={','.join(settings.PYLINT_DISABLE_OPTIONS_TEST_FILES)}",
             *test_files.keys(),
         ]
         lint.Run(pylint_test_opts, reporter=reporter, exit=False)
