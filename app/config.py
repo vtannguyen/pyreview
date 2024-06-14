@@ -33,6 +33,9 @@ class Settings(BaseSettings):
         "protected-access",
         "duplicate-code",
     ]
+    PYLINT_EXECUTABLE_PATH: str = "pylint"
+    PYTEST_EXECUTABLE_PATH: str = "pytest"
+    MYPY_EXECUTABLE_PATH: str = "mypy"
 
     model_config = SettingsConfigDict(env_file=".env")
 

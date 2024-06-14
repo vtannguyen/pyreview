@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 from io import StringIO
+from shutil import which
 
 from pylint import lint
 from pylint.reporters.text import TextReporter
@@ -16,6 +17,10 @@ ChangedLineNo = int
 TargetFiles = dict[Filename, list[ChangedLineNo]]
 TargetCodeFiles = TargetFiles
 TargetTestFiles = TargetFiles
+
+
+def tool_is_available(tool_name: str) -> bool:
+    return which(tool_name) is not None
 
 
 def get_current_branch() -> str | None:
@@ -217,6 +222,9 @@ def check_code_coverage(files: TargetFiles) -> None:
 
 def check_vulnerability():
     logger.info("CHECKING VULNERABILITY...")
+    if not tool_is_available("trivy"):
+        logger.info("Trivy is not available. Skipping vulnerability check.")
+        return
     res = subprocess.run(
         "trivy fs --scanners vuln,secret,config,license .",
         shell=True,
