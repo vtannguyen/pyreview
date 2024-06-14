@@ -3,12 +3,13 @@ import subprocess
 from unittest.mock import MagicMock
 
 import pytest
+from pylint.reporters.text import TextReporter
 
 from app.review import (
-    get_current_branch,
+    check_code_with_pylint,
+    check_commented_code,
+    check_print_debug,
     get_files_to_check,
-    get_files_with_commented_code,
-    get_files_with_debug_code,
 )
 from app.tests.const import (
     CODE_CONTENT,
@@ -116,22 +117,33 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
     )
 
 
-def test_get_files_with_commented_code(mock_code_directory, mocker):
+def test_check_commented_code(mock_code_directory, mocker, caplog):
     # Arrange
     mocker.patch("app.review.settings.ACCEPTED_COMMENTS", ["# Accepted comment"])
     mocker.patch("app.review.settings.CODE_DIR", "src")
-    # Act
+    expected_log = """CHECK FOR COMMENTED CODE...
+------------  -----------
+File          Line number
+src/items.py  [6, 7]
+------------  -----------"""
     code_files, _ = get_files_to_check()
-    res = get_files_with_commented_code(code_files)
+    # Act
+    res = check_commented_code(code_files)
     # Assert
-    assert res == {"src/items.py": [6, 7]}
+    assert expected_log == "\n".join(caplog.messages)
 
 
-def test_get_files_with_debug_code(mock_code_directory, mocker):
+def test_check_print_debug(mock_code_directory, mocker, caplog):
     # Arrange
     mocker.patch("app.review.settings.CODE_DIR", "src")
+    expected_log = """CHECK FOR PRINT DEBUG...
+------------  -----------
+File          Line number
+src/items.py  [24]
+------------  -----------"""
     code_files, _ = get_files_to_check()
     # Act
-    res = get_files_with_debug_code(code_files)
+    check_print_debug(code_files)
     # Assert
-    assert res == {"src/items.py": [24]}
+    assert expected_log == "\n".join(caplog.messages)
+    # Assert
