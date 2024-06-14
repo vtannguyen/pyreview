@@ -168,7 +168,7 @@ def check_commented_code(files: TargetFiles) -> None:
 
 def check_code_with_mypy(files: TargetFiles) -> None:
     logger.info("CHECKING CODE USING mypy...")
-    subprocess.run("mypy --install-types", shell=True)
+    subprocess.run("mypy --install-types --non-interactive", shell=True)
     CMD = "mypy --follow-imports=skip --ignore-missing-imports " + " ".join(
         files.keys()
     )
