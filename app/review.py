@@ -174,17 +174,17 @@ def check_code_with_mypy(files: TargetFiles) -> None:
 
 def check_code_coverage(files: TargetFiles) -> None:
     logger.info("CHECKING CODE COVERAGE...")
-    COV_JSON_FILE_PATH = "cov.json"
-    COV_HTML_DIR = "cov_html"
+    if settings.TEST_SETUP_COMMAND:
+        subprocess.run(settings.TEST_SETUP_COMMAND, shell=True, check=True)
     try:
         subprocess.run(
-            f"pytest --cov-report json:{COV_JSON_FILE_PATH} --cov-report html:{COV_HTML_DIR} --cov={settings.CODE_DIR} .",
+            f"pytest --cov-report json:{settings.COV_JSON_FILE_PATH} --cov-report html:{settings.COV_HTML_DIR} --cov={settings.CODE_DIR} .",
             shell=True,
             check=True,
         )
     except subprocess.CalledProcessError:
         return
-    with open(COV_JSON_FILE_PATH, "r", encoding="utf-8") as f:
+    with open(settings.COV_JSON_FILE_PATH, "r", encoding="utf-8") as f:
         cov_report = json.load(f)
         files_not_covered = []
         for file, data in cov_report["files"].items():
@@ -195,9 +195,9 @@ def check_code_coverage(files: TargetFiles) -> None:
                 if data["missing_lines"] != 0 and not_covered_lines:
                     files_not_covered.append((file, not_covered_lines))
     files_not_covered_links = []
-    for file in os.listdir(COV_HTML_DIR):
+    for file in os.listdir(settings.COV_HTML_DIR):
         for related_file, not_covered_lines in files_not_covered:
-            with open(f"{COV_HTML_DIR}/{file}", "r", encoding="utf-8") as f:
+            with open(f"{settings.COV_HTML_DIR}/{file}", "r", encoding="utf-8") as f:
                 if (
                     file.endswith(
                         f"{related_file.split('/')[-1].replace('.', '_')}.html"
@@ -206,12 +206,14 @@ def check_code_coverage(files: TargetFiles) -> None:
                 ):
                     files_not_covered_links.append(
                         (
-                            f"file://{os.getcwd()}/{COV_HTML_DIR}/{file}",
+                            f"file://{os.getcwd()}/{settings.COV_HTML_DIR}/{file}",
                             not_covered_lines,
                         )
                     )
     logger.info("The following files is not fully covered by tests:")
     logger.info(tabulate((("File link", "Line number"), *files_not_covered_links)))
+    if settings.TEST_TEARDOWN_COMMAND:
+        subprocess.run(settings.TEST_TEARDOWN_COMMAND, shell=True, check=True)
 
 
 def check_vulnerability():
