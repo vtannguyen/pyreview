@@ -4,7 +4,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from app.review import get_current_branch, get_files_to_check
+from app.review import (
+    get_current_branch,
+    get_files_to_check,
+    get_files_with_commented_code,
+)
 from app.tests.const import (
     CODE_CONTENT,
     CONFIG_CONTENT,
@@ -112,3 +116,12 @@ def test_get_files_to_check__only_diff_files(mock_code_directory, mocker):
         },
         {"src/tests/test_items.py": [3, *range(13, 26)]},
     )
+
+
+def test_get_files_with_commented_code(mock_code_directory, mocker):
+    # Arrange
+    mocker.patch("app.review.settings.ACCEPTED_COMMENTS", ["# Accepted comment"])
+    # Act
+    res = get_files_with_commented_code(mock_code_directory["code_files"])
+    # Assert
+    assert res == {"src/items.py": [5, 6]}

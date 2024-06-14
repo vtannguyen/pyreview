@@ -93,8 +93,9 @@ def get_files_with_commented_code(files: TargetFiles) -> TargetFiles:
     for file_path in files:
         with open(file_path, "r", encoding="utf-8") as f:
             for num, line in enumerate(f.readlines()):
-                if re.match(r".*#.*", line) and not any(
-                    comment in line for comment in settings.ACCEPTED_COMMENTS
+                if re.search(r".*#.*", line) and not any(
+                    re.search(f"{comment}$", line)
+                    for comment in settings.ACCEPTED_COMMENTS
                 ):
                     files_with_commented_code.setdefault(file_path, []).append(num)
     return files_with_commented_code
