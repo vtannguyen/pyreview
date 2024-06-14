@@ -77,7 +77,7 @@ def get_changed_python_files() -> tuple[TargetCodeFiles, TargetTestFiles]:
             else:
                 start, length = new_lines_no.split(",")
                 new_lines = list(range(int(start), int(start) + int(length)))
-            if current_file.startswith(settings.CODE_DIR):
+            if not settings.CODE_DIR or current_file.startswith(settings.CODE_DIR):
                 if "test" in current_file:
                     test_files.setdefault(current_file, []).extend(new_lines)
                 else:

@@ -2,9 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    TARGET_PROJECT: str = "."
+    TARGET_PROJECT: str | None = None
     TARGET_BRANCH: str = "master"
-    CODE_DIR: str = "app"
+    CODE_DIR: str | None = None
     ACCEPTED_COMMENTS: list[str] = ["# Arrange", "# Act", "# Assert"]
     RESULT_FILE_NAME: str = "comments.txt"
     TEST_SETUP_COMMAND: str | None = None

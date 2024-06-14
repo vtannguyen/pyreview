@@ -15,7 +15,7 @@ from app.review import (
 
 if __name__ == "__main__":
     current_dir = os.getcwd()
-    if settings.TARGET_PROJECT != ".":
+    if settings.TARGET_PROJECT:
         os.chdir(settings.TARGET_PROJECT)
     code_files, test_files = get_files_to_check()
     all_files = {**code_files, **test_files}
