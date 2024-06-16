@@ -25,12 +25,13 @@ def tool_is_available(tool_name: str) -> bool:
 
 def get_current_branch() -> str | None:
     res = subprocess.run(
-        "git branch", shell=True, check=True, capture_output=True, text=True
+        "git branch --show-current",
+        shell=True,
+        check=True,
+        capture_output=True,
+        text=True,
     )
-    for line in res.stdout.split("\n"):
-        if line.startswith("*"):
-            return line.split(" ")[1]
-    return None
+    return res.stdout.strip()
 
 
 def get_all_python_files() -> tuple[TargetCodeFiles, TargetTestFiles]:
