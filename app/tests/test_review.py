@@ -1,9 +1,9 @@
 import os
 import re
 import subprocess
+from unittest.mock import MagicMock
 
 import pytest
-from pylint.reporters.text import TextReporter
 
 from app.review import (
     check_code_coverage,
@@ -143,18 +143,16 @@ def test_check_code_with_pylint(mock_code_directory, mocker, caplog):
     mocker.patch("app.review.settings.TARGET_BRANCH", "master")
     mocker.patch("app.review.settings.CODE_DIR", "src")
 
-    def mock_lint_run(pylint_code_opts, reporter: TextReporter, *args, **kwargs):
-        if any("test" in filename for filename in pylint_code_opts):
-            reporter.writeln(
-                """************* Module src.tests.test_items
+    def mock_run(*args, **kwargs):
+        res = MagicMock()
+        if "test" in args[0]:
+            res.stdout = """************* Module src.tests.test_items
 src/tests/test_items.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 src/tests/test_items.py:7:0: C0116: Missing function or method docstring (missing-function-docstring)
 src/tests/test_items.py:18:0: C0116: Missing function or method docstring (missing-function-docstring)
 src/tests/test_items.py:31:0: C0116: Missing function or method docstring (missing-function-docstring)"""
-            )
         else:
-            reporter.writeln(
-                """************* Module src.items
+            res.stdout = """************* Module src.items
 src/items.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 src/items.py:5:0: C0116: Missing function or method docstring (missing-function-docstring)
 src/items.py:16:0: C0116: Missing function or method docstring (missing-function-docstring)
@@ -162,7 +160,7 @@ src/items.py:26:0: C0116: Missing function or method docstring (missing-function
 ************* Module src.schema
 src/schema.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)"""
-            )
+        return res
 
     expected_log = """CHECKING CODE USING Pylint...
 ************* Module src.items
@@ -173,7 +171,7 @@ src/schema.py:4:0: C0115: Missing class docstring (missing-class-docstring)
 ************* Module src.tests.test_items
 src/tests/test_items.py:18:0: C0116: Missing function or method docstring (missing-function-docstring)"""
 
-    mocker.patch("app.review.lint.Run", side_effect=mock_lint_run)
+    mocker.patch("app.review.subprocess.run", side_effect=mock_run)
     code_files, test_files = get_files_to_check()
     # Act
     check_code_with_pylint(code_files=code_files, test_files=test_files)

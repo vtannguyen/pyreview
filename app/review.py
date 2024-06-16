@@ -2,11 +2,8 @@ import json
 import os
 import re
 import subprocess
-from io import StringIO
 from shutil import which
 
-from pylint import lint
-from pylint.reporters.text import TextReporter
 from tabulate import tabulate
 
 from app.config import settings
@@ -127,22 +124,33 @@ def get_files_to_check() -> tuple[TargetCodeFiles, TargetTestFiles]:
 def check_code_with_pylint(code_files: TargetFiles, test_files: TargetFiles) -> None:
     logger.info("CHECKING CODE USING Pylint...")
     all_files = {**code_files, **test_files}
-    lint_output = StringIO()
-    reporter = TextReporter(lint_output)
+    lint_output = []
     if code_files:
         pylint_code_opts = [
             f"--disable={','.join(settings.PYLINT_DISABLE_OPTIONS_CODE_FILES)}",
             *code_files.keys(),
         ]
-        lint.Run(pylint_code_opts, reporter=reporter, exit=False)
+        res = subprocess.run(
+            f'pylint {" ".join(pylint_code_opts)}',
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
+        lint_output.extend(res.stdout.splitlines())
     if test_files:
         pylint_test_opts = [
             f"--disable={','.join(settings.PYLINT_DISABLE_OPTIONS_TEST_FILES)}",
             *test_files.keys(),
         ]
-        lint.Run(pylint_test_opts, reporter=reporter, exit=False)
+        res = subprocess.run(
+            f'pylint {" ".join(pylint_test_opts)}',
+            shell=True,
+            capture_output=True,
+            text=True,
+        )
+        lint_output.extend(res.stdout.splitlines())
     related_lines = []
-    for line in lint_output.getvalue().split("\n"):
+    for line in lint_output:
         if line.startswith("****"):
             related_lines.append(line)
         else:
